@@ -59,7 +59,7 @@ model_str <- build_model(names(df))
 cat("Structural equation model:\n\n")
 cat(model_str, "\n")
 
-fit <- sem(model_str, data = df)
+fit <- sem(model_str, data = df, verbose=FALSE)
 cat("\n--------------------------------------\n")
 cat("\nModel summary:\n\n")
 print(summary(fit))
