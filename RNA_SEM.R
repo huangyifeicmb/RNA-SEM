@@ -8,10 +8,10 @@ build_model <- function(var_names){
     pro_var = grep("_PROseq$", var_names, perl=TRUE, value=TRUE)
     rna_var = grep("_Exon$", var_names, perl=TRUE, value=TRUE)
     covariate = setdiff(var_names, union(pro_var, rna_var))
-    print(var_names)
-    print(pro_var)
-    print(rna_var)
-    print(covariate)
+    # print(var_names)
+    # print(pro_var)
+    # print(rna_var)
+    # print(covariate)
 
     model_str <- "# Measurement model\n"
     for (x in pro_var){
@@ -56,10 +56,21 @@ build_model <- function(var_names){
 df <- read.csv(args[1], row.names=1, header=TRUE)
 # print(head(df))
 model_str <- build_model(names(df))
+cat("Structural equation model:\n\n")
 cat(model_str, "\n")
 
 fit <- sem(model_str, data = df)
+cat("\n--------------------------------------\n")
+cat("\nModel summary:\n\n")
 print(summary(fit))
-# print(coef(fit))
+para <- parameterEstimates(fit)
+para <- para[para$op == "~" & para$rhs != "latent_trans_", ]
+para$response <- para$lhs
+para$response[para$response == "latent_trans_"] <- "Transcription_rate"
+para$response[para$response == "latent_RNA_"] <- "Half_life"
+para$covariate <- para$rhs
 
-# print(names(df))
+cat("\n--------------------------------------\n")
+cat("\nModel fitting:\n\n")
+print(fitMeasures(fit))
+write.csv(para[, c("response", "covariate", "est", "pvalue", "z", "se", "ci.lower", "ci.upper")], quote=FALSE, row.names=FALSE, file=args[2])
